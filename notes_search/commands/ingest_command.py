@@ -47,6 +47,9 @@ def ingest_command(ctx: typer.Context, path: Path) -> None:
                 continue
 
             content = file.read_text()
+            if content.strip() == "":
+                typer.echo(f"Skipping empty file: {file}", err=True)
+                continue
             source_type = "markdown" if file.suffix == ".md" else "text"
             now = datetime.now(timezone.utc).isoformat()
             note_id = str(uuid.uuid4())
