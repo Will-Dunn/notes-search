@@ -16,6 +16,7 @@ def auto_tag(base_url: str, model: str, content: str) -> list[str]:
     response = httpx.post(
         f"{base_url}/api/generate",
         json={"model": model, "prompt": prompt, "stream": False},
+        timeout=60,
     )
     response.raise_for_status()
     text = response.json()["response"]

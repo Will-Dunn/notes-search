@@ -41,10 +41,10 @@ def ingest_command(ctx: typer.Context, path: Path) -> None:
             ).fetchone()
             if existing:
                 typer.echo(
-                    f"Note already ingested (id={existing['id']}). Use `notes update {file}` to re-process.",
+                    f"Skipping {file}: already ingested (id={existing['id']}). Use `notes update {file}` to re-process.",
                     err=True,
                 )
-                raise typer.Exit(1)
+                continue
 
             content = file.read_text()
             source_type = "markdown" if file.suffix == ".md" else "text"

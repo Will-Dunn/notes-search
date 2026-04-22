@@ -7,6 +7,7 @@ def embed(base_url: str, model: str, texts: list[str]) -> list[list[float]]:
         response = httpx.post(
             f"{base_url}/api/embeddings",
             json={"model": model, "prompt": text},
+            timeout=60,
         )
         response.raise_for_status()
         embeddings.append(response.json()["embedding"])
