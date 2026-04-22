@@ -1,6 +1,8 @@
 import httpx
 import typer
+from pathlib import Path
 
+from notes_search.commands.ingest_command import ingest_command
 from notes_search.config import get_config
 from notes_search.db import init_db
 from notes_search.logger import get_logger
@@ -57,6 +59,13 @@ def startup(ctx: typer.Context) -> None:
     ctx.obj["config"] = config
     logger.info("Startup complete")
 
+@app.command()
+def ingest(
+        ctx: typer.Context,
+        path: Path = typer.Argument(..., help="Path to a note file or directory"),
+) -> None:
+    """Ingest a note or directory of notes into the database."""
+    ingest_command(ctx, path)
 
 if __name__ == "__main__":
     app()
