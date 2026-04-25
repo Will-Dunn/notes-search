@@ -82,24 +82,41 @@ def ingest(
     typer.echo(f"Ingested {ingested} note(s).")
 
 
+def _render_sources(related_notes: list) -> None:
+    for related_note in related_notes:
+        typer.echo(related_note.note.title)
+        if hasattr(related_note.note, "tags") and related_note.note.tags:
+            typer.echo(f"tags: {', '.join(related_note.note.tags)}")
+        excerpt = related_note.related_chunk.content.strip().replace("\n", " ")
+        if len(excerpt) > 150:
+            excerpt = excerpt[:150] + "…"
+        typer.echo(excerpt)
+        typer.echo("")
+
+
 @app.command()
 def search(
-    ctx: typer.Context,
     query: str = typer.Argument(..., help="Search query"),
-    question: str = typer.Argument("", help="Additional question to ask the LLM"),
-    top_k: int = typer.Option(10, help="Number of results to return"),
-    raw: bool = typer.Option(False, help="Return raw LLM output"),
+    top_k: int = typer.Option(None, help="Number of results to return"),
+    raw: bool = typer.Option(False, "--raw", help="Skip LLM synthesis, show sources only"),
 ) -> None:
     """Search notes by semantic similarity."""
+    cfg = get_config()
+    effective_top_k = top_k if top_k is not None else cfg.top_k_chunks
     service = build_search_service()
-    results = service.search(query= query, question= question, raw =  raw, top_k= top_k)
-    if not results:
+    results = service.search(query=query, raw=raw, top_k=effective_top_k)
+
+    if not results.related_notes:
         typer.echo("No results found.")
         return
+
     if not raw:
         typer.echo(results.generated_response)
-    for related_note in results.related_notes:
-        typer.echo(f"[{related_note.score:.4f}] {related_note.note.title}  ({related_note.note.source_path})\n tags: ".join([tag for tag in related_note.note.tags]) + f" \n excerpt: {related_note.related_chunk.content}\n\n" )
+        typer.echo("")
+        typer.echo("── Sources ──")
+        typer.echo("")
+
+    _render_sources(results.related_notes)
 
 
 if __name__ == "__main__":
