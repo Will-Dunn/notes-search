@@ -24,7 +24,7 @@ class SearchService:
                 note_results.append(RelatedNote(note=note, related_chunk=chunk, score=score))
                 seen.add(chunk.note_id)
 
-        synth_response = ""
+        synth_response = None
         if not raw and note_results:
             synth_response = self._synthesizer.synthesize(query, [chunk for chunk, _ in chunk_results])
 

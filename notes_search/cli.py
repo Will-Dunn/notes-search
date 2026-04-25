@@ -110,8 +110,10 @@ def search(
         typer.echo("No results found.")
         return
 
-    if not raw:
-        typer.echo(results.generated_response)
+    if results.generated_response is not None:
+        for token in results.generated_response:
+            typer.echo(token, nl=False)
+        typer.echo("")
         typer.echo("")
         typer.echo("── Sources ──")
         typer.echo("")

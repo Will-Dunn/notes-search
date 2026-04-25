@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Iterator
 
 
 @dataclass
@@ -38,5 +39,5 @@ class RelatedNote:
 
 @dataclass
 class SearchResult:
-    generated_response: str
+    generated_response: Iterator[str] | None
     related_notes: list[RelatedNote] = field(default_factory=list)
