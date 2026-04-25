@@ -5,7 +5,7 @@ from typing import Generator
 
 import sqlite_vec
 
-from notes_search.core.models import Chunk, Note
+from notes_search.core.models import Chunk, Note, TaggedNote
 from notes_search.logger import get_logger
 from notes_search.ports.note_repository import INotesRepository
 
@@ -133,13 +133,13 @@ class SqliteNotesRepository(INotesRepository):
             rows = conn.execute(
                 """
                 SELECT c.id, c.note_id, c.content, c.chunk_index,
-                       ce.distance AS score
+                       distance AS score
                 FROM chunk_embeddings ce
                 JOIN chunks c ON ce.rowid = c.rowid
-                ORDER BY ce.distance
-                LIMIT ?
+                Where ce.embedding MATCH ? and ce.k = ?
+                ORDER BY distance
                 """,
-                (top_k,),
+                (serialized, top_k),
             ).fetchall()
         return [
             (
@@ -153,14 +153,30 @@ class SqliteNotesRepository(INotesRepository):
             )
             for row in rows
         ]
-
-    def get_note_by_id(self, note_id: str) -> Note | None:
+    def get_note_by_id(self, note_id: str, include_tags: bool = False) -> Note | None:
         with self._get_conn() as conn:
             row = conn.execute(
                 "SELECT * FROM notes WHERE id = ?", (note_id,)
             ).fetchone()
-        if row is None:
-            return None
+            if row is None:
+                return None
+            if include_tags:
+                tag_rows = conn.execute(
+                    "SELECT t.name FROM tags t JOIN note_tags nt ON nt.tag_id = t.id WHERE nt.note_id = ?",
+                    (note_id,),
+                ).fetchall()
+                return TaggedNote(
+                    id=row["id"],
+                    title=row["title"],
+                    content=row["content"],
+                    source_path=row["source_path"],
+                    source_type=row["source_type"],
+                    is_ocr=bool(row["is_ocr"]),
+                    is_generated=bool(row["is_generated"]),
+                    created_at=row["created_at"],
+                    updated_at=row["updated_at"],
+                    tags=[r["name"] for r in tag_rows],
+                )
         return Note(
             id=row["id"],
             title=row["title"],

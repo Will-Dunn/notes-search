@@ -86,16 +86,20 @@ def ingest(
 def search(
     ctx: typer.Context,
     query: str = typer.Argument(..., help="Search query"),
+    question: str = typer.Argument("", help="Additional question to ask the LLM"),
     top_k: int = typer.Option(10, help="Number of results to return"),
+    raw: bool = typer.Option(False, help="Return raw LLM output"),
 ) -> None:
     """Search notes by semantic similarity."""
     service = build_search_service()
-    results = service.search(query, top_k)
+    results = service.search(query= query, question= question, raw =  raw, top_k= top_k)
     if not results:
         typer.echo("No results found.")
         return
-    for note, score in results:
-        typer.echo(f"[{score:.4f}] {note.title}  ({note.source_path})")
+    if not raw:
+        typer.echo(results.generated_response)
+    for related_note in results.related_notes:
+        typer.echo(f"[{related_note.score:.4f}] {related_note.note.title}  ({related_note.note.source_path})\n tags: ".join([tag for tag in related_note.note.tags]) + f" \n excerpt: {related_note.related_chunk.content}\n\n" )
 
 
 if __name__ == "__main__":

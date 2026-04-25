@@ -13,6 +13,9 @@ class Note:
     created_at: str = ""
     updated_at: str = ""
 
+@dataclass
+class TaggedNote(Note):
+    tags: list[str] = field(default_factory=list)
 
 @dataclass
 class Chunk:
@@ -26,3 +29,14 @@ class Chunk:
 class Tag:
     id: str
     name: str
+
+@dataclass
+class RelatedNote:
+    note: TaggedNote
+    related_chunk: Chunk
+    score: float
+
+@dataclass
+class SearchResult:
+    generated_response: str
+    related_notes: list[RelatedNote] = field(default_factory=list)
