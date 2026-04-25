@@ -136,7 +136,7 @@ class SqliteNotesRepository(INotesRepository):
                        distance AS score
                 FROM chunk_embeddings ce
                 JOIN chunks c ON ce.rowid = c.rowid
-                Where ce.embedding MATCH ? and ce.k = ?
+                WHERE ce.embedding MATCH ? AND ce.k = ?
                 ORDER BY distance
                 """,
                 (serialized, top_k),
@@ -177,14 +177,14 @@ class SqliteNotesRepository(INotesRepository):
                     updated_at=row["updated_at"],
                     tags=[r["name"] for r in tag_rows],
                 )
-        return Note(
-            id=row["id"],
-            title=row["title"],
-            content=row["content"],
-            source_path=row["source_path"],
-            source_type=row["source_type"],
-            is_ocr=bool(row["is_ocr"]),
-            is_generated=bool(row["is_generated"]),
-            created_at=row["created_at"],
-            updated_at=row["updated_at"],
-        )
+            return Note(
+                id=row["id"],
+                title=row["title"],
+                content=row["content"],
+                source_path=row["source_path"],
+                source_type=row["source_type"],
+                is_ocr=bool(row["is_ocr"]),
+                is_generated=bool(row["is_generated"]),
+                created_at=row["created_at"],
+                updated_at=row["updated_at"],
+            )

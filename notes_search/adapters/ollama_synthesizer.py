@@ -30,7 +30,10 @@ class OllamaSynthesizer(ISynthesizer):
             for line in response.iter_lines():
                 if not line:
                     continue
-                obj = json.loads(line)
+                try:
+                    obj = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
                 yield obj["response"]
                 if obj.get("done"):
                     break

@@ -21,5 +21,5 @@ def build_search_service() -> SearchService:
     cfg = get_config()
     repo = SqliteNotesRepository(cfg.db_path, cfg.dimensions)
     embedder = OllamaEmbedder(cfg.ollama_base_url, cfg.embed_model)
-    synth_service = OllamaSynthesizer(cfg.ollama_base_url, cfg.llm_model)
-    return SearchService(repo, embedder, synth_service)
+    synthesizer = OllamaSynthesizer(cfg.ollama_base_url, cfg.llm_model)
+    return SearchService(repo, embedder, synthesizer)

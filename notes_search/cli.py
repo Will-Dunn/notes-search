@@ -85,8 +85,9 @@ def ingest(
 def _render_sources(related_notes: list) -> None:
     for related_note in related_notes:
         typer.echo(related_note.note.title)
-        if hasattr(related_note.note, "tags") and related_note.note.tags:
-            typer.echo(f"tags: {', '.join(related_note.note.tags)}")
+        tags = getattr(related_note.note, "tags", None)
+        if tags:
+            typer.echo(f"tags: {', '.join(tags)}")
         excerpt = related_note.related_chunk.content.strip().replace("\n", " ")
         if len(excerpt) > 150:
             excerpt = excerpt[:150] + "…"
@@ -97,7 +98,7 @@ def _render_sources(related_notes: list) -> None:
 @app.command()
 def search(
     query: str = typer.Argument(..., help="Search query"),
-    top_k: int = typer.Option(None, help="Number of results to return"),
+    top_k: int | None = typer.Option(None, help="Number of results to return"),
     raw: bool = typer.Option(False, "--raw", help="Skip LLM synthesis, show sources only"),
 ) -> None:
     """Search notes by semantic similarity."""
