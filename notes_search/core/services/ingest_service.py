@@ -40,7 +40,7 @@ class IngestService:
                 skipped += 1
                 continue
 
-            content = file.read_text()
+            content = file.read_text(encoding="utf-8", errors="replace")
             if not content.strip():
                 continue
 
@@ -67,6 +67,9 @@ class IngestService:
                     chunk_index=i,
                 )
                 self._repo.save_chunk(chunk, embedding)
+
+            avg_embedding = [sum(col) / len(col) for col in zip(*embeddings)]
+            self._repo.save_note_embedding(note.id, avg_embedding)
 
             tags = self._tagger.tag(content)
             self._repo.save_tags(note.id, tags)

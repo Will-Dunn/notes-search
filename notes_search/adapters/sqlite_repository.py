@@ -73,9 +73,18 @@ class SqliteNotesRepository(INotesRepository):
                 tag_id  TEXT NOT NULL REFERENCES tags(id),
                 PRIMARY KEY (note_id, tag_id)
             );
+
+            CREATE TABLE IF NOT EXISTS note_embedding_map (
+                rowid   INTEGER PRIMARY KEY,
+                note_id TEXT NOT NULL REFERENCES notes(id)
+            );
         """)
         conn.execute(
             f"CREATE VIRTUAL TABLE IF NOT EXISTS chunk_embeddings "
+            f"USING vec0(embedding float[{self._dimensions}])"
+        )
+        conn.execute(
+            f"CREATE VIRTUAL TABLE IF NOT EXISTS note_embeddings "
             f"USING vec0(embedding float[{self._dimensions}])"
         )
         conn.commit()
@@ -100,11 +109,19 @@ class SqliteNotesRepository(INotesRepository):
                 "INSERT INTO chunks (id, note_id, content, chunk_index) VALUES (?,?,?,?)",
                 (chunk.id, chunk.note_id, chunk.content, chunk.chunk_index),
             )
-            chunk_rowid = result.lastrowid
-            serialized = sqlite_vec.serialize_float32(embedding)
             conn.execute(
                 "INSERT INTO chunk_embeddings(rowid, embedding) VALUES (?,?)",
-                (chunk_rowid, serialized),
+                (result.lastrowid, sqlite_vec.serialize_float32(embedding)),
+            )
+
+    def save_note_embedding(self, note_id: str, embedding: list[float]) -> None:
+        with self._get_conn() as conn:
+            result = conn.execute(
+                "INSERT INTO note_embedding_map (note_id) VALUES (?)", (note_id,)
+            )
+            conn.execute(
+                "INSERT INTO note_embeddings(rowid, embedding) VALUES (?,?)",
+                (result.lastrowid, sqlite_vec.serialize_float32(embedding)),
             )
 
     def save_tags(self, note_id: str, tags: list[str]) -> None:
@@ -153,6 +170,7 @@ class SqliteNotesRepository(INotesRepository):
             )
             for row in rows
         ]
+
     def get_note_by_id(self, note_id: str, include_tags: bool = False) -> Note | None:
         with self._get_conn() as conn:
             row = conn.execute(
@@ -162,7 +180,9 @@ class SqliteNotesRepository(INotesRepository):
                 return None
             if include_tags:
                 tag_rows = conn.execute(
-                    "SELECT t.name FROM tags t JOIN note_tags nt ON nt.tag_id = t.id WHERE nt.note_id = ?",
+                    "SELECT t.name FROM tags t "
+                    "JOIN note_tags nt ON nt.tag_id = t.id "
+                    "WHERE nt.note_id = ?",
                     (note_id,),
                 ).fetchall()
                 return TaggedNote(
@@ -188,3 +208,9 @@ class SqliteNotesRepository(INotesRepository):
                 created_at=row["created_at"],
                 updated_at=row["updated_at"],
             )
+
+    def get_related_notes(self, note_id: str, top_k: int) -> list[TaggedNote]:
+        pass
+
+    def get_note_by_name(self, name: str) -> TaggedNote | None:
+        pass

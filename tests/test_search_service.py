@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from notes_search.core.models import Chunk, RelatedNote, SearchResult, TaggedNote
+from notes_search.core.models import Chunk, RelatedNoteAndChunk, SearchResult, TaggedNote
 from notes_search.core.services.search_service import SearchService
 from notes_search.ports.embedder import IEmbedder
 from notes_search.ports.note_repository import INotesRepository

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from notes_search.core.models import Chunk, Note
+from notes_search.core.models import Chunk, Note, TaggedNote
 
 
 class INotesRepository(ABC):
@@ -23,3 +23,12 @@ class INotesRepository(ABC):
 
     @abstractmethod
     def get_note_by_id(self, note_id: str, include_tags: bool = False) -> Note | None: ...
+
+    @abstractmethod
+    def save_note_embedding(self, note_id: str, embedding: list[float]) -> None: ...
+
+    @abstractmethod
+    def get_related_notes(self, note_id: str, top_k: int) -> list[Note] | None: ...
+
+    @abstractmethod
+    def get_note_by_name(self, name: str) -> TaggedNote | None: ...

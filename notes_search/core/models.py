@@ -32,7 +32,7 @@ class Tag:
     name: str
 
 @dataclass
-class RelatedNote:
+class RelatedNoteAndChunk:
     note: TaggedNote
     related_chunk: Chunk
     score: float
@@ -40,4 +40,9 @@ class RelatedNote:
 @dataclass
 class SearchResult:
     generated_response: Iterator[str] | None
-    related_notes: list[RelatedNote] = field(default_factory=list)
+    related_notes: list[RelatedNoteAndChunk] = field(default_factory=list)
+
+@dataclass
+class NoteWithRelations:
+    note: TaggedNote
+    related_notes: list[TaggedNote] = field(default_factory=list)
